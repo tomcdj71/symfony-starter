@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, pdo_mysql
+          coverage: pcov
+
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Run php-cs-fixer
+        run: composer run-script phpcs
+
+      - name: Check for outdated Composer dependencies
+        run: composer outdated --direct --strict
+      
+      - name: Run tests with coverage
+        run: ./vendor/bin/phpunit --coverage-clover coverage.xml
+
+      - name: Upload coverage report to Codacy
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.xml
+
+  SecurityChecker:
+    needs: Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: Set up PHP 8.2
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        tools: composer:v2
+
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+
+    - name: Install Symfony CLI
+      run: |
+        curl -sS https://get.symfony.com/cli/installer | bash
+        mkdir -p $HOME/bin
+        mv /home/runner/.symfony5/bin/symfony $HOME/bin/
+
+    - name: Run Symfony Security Check
+      run: $HOME/bin/symfony security:check
+    
+    - name: Gitleaks
+      uses: gitleaks/gitleaks-action@v2.3.2
+
+  CodingStandards:
+    needs: SecurityChecker
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: Set up PHP 8.2
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        tools: composer:v2
+
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+
+    - name: Run php-cs-fixer
+      run: ./vendor/bin/php-cs-fixer fix ./src --dry-run --rules=@Symfony --verbose
+
+    - name: Run phpstan
+      run: ./vendor/bin/phpstan analyse ./src -l3
+    
+    - name: Run Rector
+      run: ./vendor/bin/rector process ./src --dry-run
+
+  Lint:
+    needs: CodingStandards
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up PHP 8.2
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        tools: composer:v2
+
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+
+    - name: Lint twig templates
+      run: ./bin/console lint:twig templates --env=prod
+
+    - name: Lint yaml config
+      run: ./bin/console lint:yaml config --parse-tags
+
+    - name: Validate doctrine schema
+      run: ./bin/console doctrine:schema:validate --skip-sync -vvv --no-interaction

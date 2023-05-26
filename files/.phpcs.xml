@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<ruleset name="My Project Coding Standard">
+    <description>The coding standard for my project.</description>
+
+    <!-- Files to be included or excluded -->
+    <file>src</file>
+    <file>tests</file>
+    <exclude-pattern>vendor/*</exclude-pattern>
+    <exclude-pattern>node_modules/*</exclude-pattern>
+    <exclude-pattern>bin/*</exclude-pattern>
+    <exclude-pattern>var/*</exclude-pattern>
+
+    <!-- Set the default coding standard -->
+    <arg name="standard" value="PSR12"/>
+
+    <!-- Display progress -->
+    <arg value="p"/>
+
+    <!-- Show warnings -->
+    <arg value="w"/>
+
+    <!-- Show sniff codes in all reports -->
+    <arg value="s"/>
+
+    <!-- Check the code -->
+    <rule ref="Generic.CodeAnalysis.UnusedFunctionParameter">
+        <severity>10</severity>
+    </rule>
+
+    <rule ref="Generic.PHP.ForbiddenFunctions">
+        <properties>
+            <property name="forbiddenFunctions" type="array">
+                <element key="print" value="echo"/>
+                <element key="die" value="exit"/>
+            </property>
+        </properties>
+    </rule>
+
+    <rule ref="Generic.NamingConventions.CamelCapsFunctionName">
+        <properties>
+            <property name="strict" value="false"/>
+        </properties>
+    </rule>
+
+    <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace">
+        <properties>
+            <property name="ignoreBlankLines" value="false"/>
+        </properties>
+    </rule>
+</ruleset>
