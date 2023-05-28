@@ -264,7 +264,7 @@ create_codacy_repo() {
 wait_for_codacy() {
     echo "waiting 15sec for Codacy to be ready..."
     sleep 15
-    PROJECT_TOKEN=$(curl -sX POST "https://app.codacy.com/api/v3/organizations/gh/$GH_USERNAME/repositories/$PROJECT_NAME/tokens" -H "api-token: $CODACY_TOKEN" | jq -r ".data | .token")
+    PROJECT_TOKEN=$(curl -sX POST "https://app.codacy.com/api/v3/organizations/gh/$GH_USERNAME/repositories/$PROJECT_NAME/tokens" -H "api-token: $CODACY_TOKEN" | jq -r ".data.token")
     echo "Codacy ready."
     echo "$PROJECT_TOKEN is the project token."
     gh secret set CODACY_PROJECT_TOKEN --body $PROJECT_TOKEN
