@@ -12,13 +12,26 @@ grumphp:
       enforce_single_lined_subject: true
       type_scope_conventions: 
         types:
-        - 📦 NEW 
-        - 👌 IMPROVE 
-        - 🐛 FIX 
-        - 📖 DOCS 
-        - 🚀 RELEASE 
-        - 🤖 TEST 
-        - ‼️ BREAKING 
+        - 💥 BREAKING
+        - 👷 BUILD
+        - 💻 CI
+        - 🎫 CHORE
+        - 📦 DEPENDENCIES
+        - 📖 DOCS
+        - ✨ FEATURE
+        - 🐛 FIX
+        - 🚑️ HOTFIX
+        - 🎉 INIT
+        - 📇 METADATA
+        - 🚀 PERF
+        - 🔨 REFACTOR
+        - 🔙 REVERT
+        - 🔒 SECURITY
+        - 💎 STYLE
+        - 🚨 TEST
+        - 🌐 TRANSLATION
+        - 🔖 VERSION
+        - 🚧 WIP
         scopes: ~
         subject_pattern: >-
           ([a-zA-Zа-яА-Я0-9-_ #@'\/\"]+)
