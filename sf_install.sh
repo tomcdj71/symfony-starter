@@ -78,8 +78,9 @@ create_symfony_project() {
     check_starter_pack
     mv .env .env.local
     create_env_file
-    cp -pR pre-commit .git/hooks/
+    mv pre-commit .git/hooks/
     chmod +x .git/hooks/pre-commit
+    echo "coverage.xml" >> .gitignore
     generate_and_set_secret_keys
     initialize_git
 }

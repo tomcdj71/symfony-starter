@@ -1,0 +1,43 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions: read-all
+
+jobs:
+  CodingStandards:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, pdo_mysql
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+
+      - name: Cache Composer packages
+        uses: actions/cache@v2
+        with:
+          path: vendor
+          key: ${{ runner.OS }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.OS }}-composer-
+
+      - name: Run php-cs-fixer
+        run: ./vendor/bin/php-cs-fixer fix ./src --dry-run --rules=@Symfony --verbose
+
+      - name: Run phpstan
+        run: ./vendor/bin/phpstan analyse ./src -l3
+
+      - name: Run Rector
+        run: ./vendor/bin/rector process ./src --dry-run

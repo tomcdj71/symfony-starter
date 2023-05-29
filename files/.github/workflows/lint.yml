@@ -1,0 +1,43 @@
+name: Lint
+
+on:
+  workflow_run:
+    workflows: ["Code Quality"]
+    types: 
+      - completed
+
+permissions: read-all
+
+jobs:
+  Lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, pdo_mysql
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+
+      - name: Cache Composer packages
+        uses: actions/cache@v2
+        with:
+          path: vendor
+          key: ${{ runner.OS }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.OS }}-composer-
+
+      - name: Lint twig templates
+        run: ./bin/console lint:twig templates --env=prod
+
+      - name: Lint yaml config
+        run: ./bin/console lint:yaml config --parse-tags
+
+      - name: Validate doctrine schema
+        run: ./bin/console doctrine:schema:validate --skip-sync -vvv --no-interaction
