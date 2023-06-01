@@ -17,7 +17,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - nname: Setup PHP 8.2
+      - name: Setup PHP 8.2
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
@@ -28,15 +28,19 @@ jobs:
       - name: Validate composer.json and composer.lock
         run: composer validate
 
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache Composer packages
         uses: actions/cache@v2
         with:
-          path: vendor
+          path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.OS }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.OS }}-composer-
+        
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Setup Node.js
         uses: actions/setup-node@v3

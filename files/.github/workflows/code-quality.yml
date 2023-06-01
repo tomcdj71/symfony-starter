@@ -23,15 +23,19 @@ jobs:
           coverage: pcov
           tools: composer:v2
 
-      - name: Install Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache Composer packages
         uses: actions/cache@v2
         with:
-          path: vendor
+          path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.OS }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.OS }}-composer-
+        
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Run php-cs-fixer
         run: ./vendor/bin/php-cs-fixer fix ./src --dry-run --rules=@Symfony --verbose

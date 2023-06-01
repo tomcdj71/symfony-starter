@@ -136,10 +136,13 @@ modify_composer_json() {
 }
 
 install_composer_packages() {
-    PACKAGES="rector/rector phpunit/phpunit phpstan/phpstan phpro/grumphp friendsofphp/php-cs-fixer symfony/webpack-encore-bundle squizlabs/php_codesniffer"
+    PACKAGES="rector/rector phpunit/phpunit phpstan/phpstan phpro/grumphp friendsofphp/php-cs-fixer squizlabs/php_codesniffer"
     composer req $PACKAGES --dev --with-all-dependencies --no-interaction --sort-packages --optimize-autoloader --fixed
+    composer req symfony/webpack-encore-bundle
+    composer req symfonycasts/verify-email-bundle
     ./vendor/bin/php-cs-fixer fix --allow-risky=yes
     ./vendor/bin/phpunit --coverage-clover coverage.xml --migrate-configuration
+    echo ".phpunit.cache/" >> .gitignore
 }
 
 setup_npm_packages() {
@@ -147,7 +150,7 @@ setup_npm_packages() {
     .scripts += {
         "lint": "./vendor/bin/phpcbf --standard=.phpcs.xml --ignore=vendor/,bin/,var/,node_modules/ src/ tests/",
         "analyze": "./vendor/bin/phpstan analyze --configuration=phpstan.neon",
-        "security": "./bin/console security:check",
+        "security": "symfony check:security",
         "precommit": "\($pm) run lint && \($pm) run analyze && \($pm) run security"
     }
     | .["pre-commit"] = ["precommit"]
@@ -165,6 +168,7 @@ initialize_git() {
     echo -e "\n" | gh repo create $GH_USERNAME/$PROJECT_NAME --public -d "$DESCRIPTION" > /dev/null 2>&1 && echo "GitHub repository created."
     git config --global init.defaultBranch main
     git config --global --add --bool push.autoSetupRemote true
+    
     git init
     git remote add origin https://github.com/$GH_USERNAME/$PROJECT_NAME.git
     echo "Creating branches..."
