@@ -54,7 +54,6 @@ export FULL_NAME="John Doe"
 export GITHUB_USERNAME="johndoe54"
 export GITHUB_TOKEN="ghp_xxx"
 export CODACY_TOKEN="zzz"
-
 export PACKAGE_MANAGER=pnpm
 sfi -ghu $GITHUB_USERNAME -ght $GITHUB_TOKEN -ct $CODACY_TOKEN -o $FULL_NAME -pm $PACKAGE_MANAGER -desc "My super project" -n "TestProject"`
 ```

@@ -156,14 +156,16 @@ setup_npm_packages() {
         "analyze": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --generate-baseline",
         "security": "symfony check:security",
         "precommit": "\($pm) run lint && \($pm) run analyze && \($pm) run security",
-        "pre-commit": "\($pm) run analyze && \($pm) run precommit"
+        "pre-commit": "\($pm) run analyze && \($pm) run precommit",
+        "pub": "npm version patch --force && npm publish"
     }
     | .["pre-commit"] = ["precommit"]
     ' package.json > newPackage.json
     
     mv newPackage.json package.json
+    PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github"
     $PACKAGE_MANAGER up --latest
-    $PACKAGE_MANAGER install
+    $PACKAGE_MANAGER install --save-dev $PACKAGES
     $PACKAGE_MANAGER run build
 }
 
@@ -174,14 +176,15 @@ initialize_git() {
     git config --global init.defaultBranch main
     git config --global --add --bool push.autoSetupRemote true
     git config --global push.default current
-    
     git init
     git remote add origin https://github.com/$GH_USERNAME/$PROJECT_NAME.git
     echo "Creating branches..."
     generate_readme
+    git checkout -b staging
+    git checkout -b develop
     git add .
     git commit -m "🎉 INIT: add initial set of files [automated]"
-    git push -u origin main
+    git push -u origin develop
     create_codacy_repo
     wait_for_codacy
 }
@@ -191,16 +194,18 @@ generate_readme() {
     cat > README.md <<EOF
 # Welcome to $PROJECT_NAME 👋
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
-[![Twitter: ${GH_USERNAME}](https://img.shields.io/twitter/follow/${GH_USERNAME}.svg?style=social)](https://twitter.com/${GH_USERNAME})
-[![Codacy Badge](GRADE_URL)](https://app.codacy.com/gh/${GH_USERNAME}/${PROJECT_NAME}/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![Codacy Badge](COVERAGE_URL)](https://app.codacy.com/gh/${GH_USERNAME}/${PROJECT_NAME}/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
+[![Twitter: ${GH_USERNAME}](https://img.shields.io/twitter/follow/${GH_USERNAME}.svg?style=social)](https://twitter.com/${GH_USERNAME})]
+[![Codacy Badge](GRADE_URL)](https://app.codacy.com/gh/${GH_USERNAME}/${PROJECT_NAME}/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)]
+[![Codacy Badge](COVERAGE_URL)](https://app.codacy.com/gh/${GH_USERNAME}/${PROJECT_NAME}/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)]
+[![GitHub release (with filter)](https://img.shields.io/github/v/release/tomcdj71/Snowtricks)]
+[![GitHub release (with filter)](https://img.shields.io/github/v/release/tomcdj71/Snowtricks?filter=*beta)]
 
 > ${DESCRIPTION}
 
 ## Pre-requisites :
 - PHP 8.2
 - Composer
-- npm (I used pnpm)
+- npm/yarn (I used pnpm)
 - Symfony CLI
 ---
 
@@ -210,7 +215,7 @@ generate_readme() {
 git clone https://github.com/${GH_USERNAME}/${PROJECT_NAME}
 cd ${PROJECT_NAME}
 composer install --no-dev --optimize-autoloader
-yarn install
+yarn install --force
 yarn build
 symfony console d:d:c
 symfony console d:m:m
@@ -304,8 +309,13 @@ final_commit(){
     chmod -R 777 var
     git add .
     git commit -m "💻 CI: add CI process [automated]"
+    git push -u origin develop
+    git checkout staging
+    git merge develop
+    git push -u origin staging
+    git checkout main
+    git merge staging
     git push -u origin main
-    git checkout -b develop
     git config branch.main.pushRemote no_push
     protect_branch
 }

@@ -2,41 +2,19 @@ name: Code Quality
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ develop ]
 
 permissions: read-all
 
 jobs:
+  setup:
+    uses: .github/workflows/shared-setup.yml
   CodingStandards:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@main
-
-      - name: Setup PHP 8.2
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: mbstring, intl, pdo_mysql
-          coverage: pcov
-          tools: composer:v2
-
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache Composer packages
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.OS }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.OS }}-composer-
-        
-      - name: Install Composer dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
-
       - name: Run php-cs-fixer
         run: composer run-script phpcs
 
@@ -45,3 +23,9 @@ jobs:
 
       - name: Run Rector
         run: ./vendor/bin/rector process ./src
+
+      - name: Upload coverage report to Codacy
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.xml
