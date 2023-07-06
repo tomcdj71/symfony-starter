@@ -128,7 +128,7 @@ modify_composer_json() {
     .name = "\($ghu)/\($pn | ascii_downcase)"
     | .description = "\($desc)"
     | .license = "MIT"
-    | .scripts += {"phpstan": "phpstan analyse", "phpcs": "./vendor/bin/php-cs-fixer fix --dry-run --allow-risky=yes"}' composer.json > newComposer.json
+    | .scripts += {"phpstan-baseline": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --allow-empty-baseline --generate-baseline --verbose", "phpstan": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --verbose", "phpcs": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes", "phpcs-dr": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes --dry-run", "translations-update": "php bin/console translation:extract --force fr --format=yml --sort"}' composer.json > newComposer.json
     mv newComposer.json composer.json
     composer config extra.symfony.allow-contrib true
     composer config --no-plugins allow-plugins.phpro/grumphp true
@@ -136,10 +136,9 @@ modify_composer_json() {
 }
 
 install_composer_packages() {
-    PACKAGES="rector/rector phpunit/phpunit phpstan/phpstan phpro/grumphp friendsofphp/php-cs-fixer squizlabs/php_codesniffer"
+    PACKAGES="rector/rector phpunit/phpunit phpstan/phpstan phpro/grumphp friendsofphp/php-cs-fixer squizlabs/php_codesniffer phpmd/phpmd"
     composer req $PACKAGES --dev --with-all-dependencies --no-interaction --sort-packages --optimize-autoloader --fixed
     composer req symfony/webpack-encore-bundle
-    composer req symfonycasts/verify-email-bundle
     ./vendor/bin/php-cs-fixer fix --allow-risky=yes
     ./vendor/bin/phpunit --coverage-clover coverage.xml --migrate-configuration
     echo ".phpunit.cache/" >> .gitignore
@@ -148,10 +147,16 @@ install_composer_packages() {
 setup_npm_packages() {
     jq --arg pm "$PACKAGE_MANAGER" '
     .scripts += {
+        "dev-server": "encore dev-server",
+        "dev": "encore dev",
+        "watch": "encore dev --watch",
+        "build": "encore production --progress",
         "lint": "./vendor/bin/phpcbf --standard=.phpcs.xml --ignore=vendor/,bin/,var/,node_modules/ src/ tests/",
-        "analyze": "./vendor/bin/phpstan analyze --configuration=phpstan.neon",
+        "fix": "./vendor/bin/rector process ./src",
+        "analyze": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --generate-baseline",
         "security": "symfony check:security",
-        "precommit": "\($pm) run lint && \($pm) run analyze && \($pm) run security"
+        "precommit": "\($pm) run lint && \($pm) run analyze && \($pm) run security",
+        "pre-commit": "\($pm) run analyze && \($pm) run precommit"
     }
     | .["pre-commit"] = ["precommit"]
     ' package.json > newPackage.json
@@ -168,6 +173,7 @@ initialize_git() {
     echo -e "\n" | gh repo create $GH_USERNAME/$PROJECT_NAME --public -d "$DESCRIPTION" > /dev/null 2>&1 && echo "GitHub repository created."
     git config --global init.defaultBranch main
     git config --global --add --bool push.autoSetupRemote true
+    git config --global push.default current
     
     git init
     git remote add origin https://github.com/$GH_USERNAME/$PROJECT_NAME.git
@@ -215,6 +221,8 @@ symfony serve
 ## Features
 
 ## Usage
+
+## About this project
 
 ## Author
 

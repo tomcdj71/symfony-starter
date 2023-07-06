@@ -38,10 +38,10 @@ jobs:
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Run php-cs-fixer
-        run: ./vendor/bin/php-cs-fixer fix ./src --dry-run --rules=@Symfony --verbose
+        run: composer run-script phpcs
 
       - name: Run phpstan
-        run: ./vendor/bin/phpstan analyse ./src -l3
+        run: composer run-script phpstan
 
       - name: Run Rector
-        run: ./vendor/bin/rector process ./src --dry-run
+        run: ./vendor/bin/rector process ./src

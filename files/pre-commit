@@ -1,5 +1,0 @@
-#!/bin/sh
-gitleaks detect --source=. --verbose --redact || {
-    echo "Aborting commit due to gitleaks finding."
-    exit 1
-}

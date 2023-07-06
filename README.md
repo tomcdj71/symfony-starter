@@ -25,7 +25,7 @@ sudo chmod +x /usr/bin/codacy-analysis-cli.sh
 git clone https://github.com/tomcdj71/symfony-starter
 cd symfony-starter
 chmod +x sf_install.sh
-sudo cp sf_install.sh /usr/bin/sfi
+sudo ln -s sf_install.sh /usr/bin/sfi
 ```
 
 ## Usage
@@ -40,8 +40,8 @@ sudo cp sf_install.sh /usr/bin/sfi
 -pm,   Package Manager
 -h|--help,    Display the help
 ```
-(1) _[learn how to create a GitHub token](https://github.com/kefranabg/readme-md-generator)_
-(2) _[learn how to create a Codacy token](https://github.com/kefranabg/readme-md-generator)_
+(1) _[learn how to create a GitHub token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)_
+(2) _[learn how to create a Codacy token](https://docs.codacy.com/codacy-api/api-tokens/)_
 
 Full usage : 
 `sfi -ghu $github_username -ght $github_token -ct $codacy_token -o $full_name -pm $pm -desc $description -n $project_name` 

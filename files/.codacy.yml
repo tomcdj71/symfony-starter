@@ -23,3 +23,5 @@ exclude_paths:
   - "src/Kernel.php"
   - "tests/bootstrap.php"
   - "config/secrets/**"
+  - "tailwind.config.js"
+  - "migrations/**"
