@@ -183,7 +183,7 @@ initialize_git() {
     git checkout -b staging
     git checkout -b develop
     git add .
-    git commit -m "🎉 INIT: add initial set of files [automated]"
+    git commit -m "🎉 INIT: add initial set of files [automated]" -n
     git push -u origin develop
     create_codacy_repo
     wait_for_codacy
@@ -193,12 +193,12 @@ generate_readme() {
     echo "Generating README.md..."
     cat > README.md <<EOF
 # Welcome to $PROJECT_NAME 👋
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
-[![Twitter: ${GH_USERNAME}](https://img.shields.io/twitter/follow/${GH_USERNAME}.svg?style=social)](https://twitter.com/${GH_USERNAME})]
-[![Codacy Badge](GRADE_URL)](https://app.codacy.com/gh/${GH_USERNAME}/${PROJECT_NAME}/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)]
-[![Codacy Badge](COVERAGE_URL)](https://app.codacy.com/gh/${GH_USERNAME}/${PROJECT_NAME}/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)]
-[![GitHub release (with filter)](https://img.shields.io/github/v/release/tomcdj71/Snowtricks)]
-[![GitHub release (with filter)](https://img.shields.io/github/v/release/tomcdj71/Snowtricks?filter=*beta)]
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)(#)
+![Twitter: ${GH_USERNAME}](https://img.shields.io/twitter/follow/${GH_USERNAME}.svg?style=social)](https://twitter.com/${GH_USERNAME})
+![Codacy Badge](GRADE_URL)](https://app.codacy.com/gh/${GH_USERNAME}/${PROJECT_NAME}/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+![Codacy Badge](COVERAGE_URL)](https://app.codacy.com/gh/${GH_USERNAME}/${PROJECT_NAME}/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
+![GitHub release (with filter)](https://img.shields.io/github/v/release/tomcdj71/Snowtricks)
+![GitHub release (with filter)](https://img.shields.io/github/v/release/tomcdj71/Snowtricks?filter=*beta)
 
 > ${DESCRIPTION}
 
@@ -310,11 +310,11 @@ final_commit(){
     git add .
     git commit -m "💻 CI: add CI process [automated]"
     git push -u origin develop
-    git checkout staging
+    git checkout -b staging
     git merge develop
     git push -u origin staging
-    git checkout main
-    git merge staging
+    git checkout -b main
+    git merge -b staging
     git push -u origin main
     git config branch.main.pushRemote no_push
     protect_branch
