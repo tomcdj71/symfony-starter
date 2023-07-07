@@ -3,17 +3,110 @@
         "main",
         {
             "name": "develop",
-            "channel": "rc",
-            "prerelease": "rc"
+            "channel": "beta",
+            "prerelease": "beta"
         },
         {
             "name": "staging",
-            "channel": "beta",
-            "prerelease": "beta"
+            "channel": "rc",
+            "prerelease": "rc"
         }
     ],
     "plugins": [
-        "@semantic-release/commit-analyzer",
+        [
+            "@semantic-release/commit-analyzer",
+            {
+                "preset": "custom",
+                "releaseRules": [
+                    {
+                        "type": "💥 BREAKING",
+                        "release": "major"
+                    },
+                    {
+                        "type": "🐛 FIX",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "✨ FEATURE",
+                        "release": "minor"
+                    },
+                    {
+                        "type": "🚑️ HOTFIX",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "🚀 PERF",
+                        "release": "minor"
+                    },
+                    {
+                        "type": "🔨 REFACTOR",
+                        "release": "minor"
+                    },
+                    {
+                        "type": "🔒 SECURITY",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "🚨 TEST",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "🔖 VERSION",
+                        "release": "minor"
+                    },
+                    {
+                        "type": "💻 CI",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "🎫 CHORE",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "📦 DEPENDENCIES",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "📖 DOCS",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "🎉 INIT",
+                        "release": "minor"
+                    },
+                    {
+                        "type": "📇 METADATA",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "🔙 REVERT",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "💎 STYLE",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "🌐 TRANSLATION",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "🚧 WIP",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "👷 BUILD",
+                        "release": "patch"
+                    }
+                ],
+                "parserOpts": {
+                    "noteKeywords": [
+                        "💥 BREAKING",
+                        "BREAKING CHANGES"
+                    ]
+                }
+            }
+        ],
         "@semantic-release/release-notes-generator",
         "@semantic-release/github"
     ]

@@ -180,7 +180,6 @@ initialize_git() {
     git remote add origin https://github.com/$GH_USERNAME/$PROJECT_NAME.git
     echo "Creating branches..."
     generate_readme
-    git checkout -b staging
     git checkout -b develop
     git add .
     git commit -m "🎉 INIT: add initial set of files [automated]" -n
@@ -308,7 +307,7 @@ final_commit(){
     sed -i "s|COVERAGE_URL|$COVERAGE_URL|g" README.md
     chmod -R 777 var
     git add .
-    git commit -m "💻 CI: add CI process [automated]"
+    git commit -m "💻 CI: add CI process [automated]" -n
     git push -u origin develop
     git checkout -b staging
     git merge develop
