@@ -20,7 +20,7 @@ jobs:
       - name: Get shared php setup
         uses: ./.github/actions/php
         with:
-          node-version: '8.2'
+          php-version: '8.2'
 
       - name: Get shared node setup
         uses: ./.github/actions/node
