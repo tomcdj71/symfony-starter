@@ -120,6 +120,7 @@ install_required_packages() {
     modify_composer_json
     install_composer_packages
     composer update
+    setup_npm_packages
 }
 
 modify_composer_json() {
@@ -180,8 +181,10 @@ initialize_git() {
     echo "Creating branches..."
     generate_readme
     git checkout -b develop
+    install_required_packages
+    ./vendor/bin/phpunit --coverage-clover coverage.xml
     git add .
-    git commit -m "🎉 INIT: add initial set of files [automated]" -n
+    git commit -m "🎉 INIT: add initial set of files [skip ci]" -n
     git push -u origin develop
     create_codacy_repo
     wait_for_codacy
@@ -321,6 +324,4 @@ final_commit(){
 parse_arguments "$@"
 set_package_manager
 create_symfony_project
-install_required_packages
-setup_npm_packages
 final_commit
