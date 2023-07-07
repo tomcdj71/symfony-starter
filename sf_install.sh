@@ -321,7 +321,7 @@ final_commit(){
     git add .
     git commit -m "💻 CI: add CI process [automated]" -n
     git stash
-    git checkout main
+    git checkout -b main
     git pull origin main
     git checkout develop
     git stash pop
