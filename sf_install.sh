@@ -163,7 +163,7 @@ setup_npm_packages() {
     ' package.json > newPackage.json
     
     mv newPackage.json package.json
-    PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github"
+    PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github conventional-changelog-custom"
     $PACKAGE_MANAGER up --latest
     $PACKAGE_MANAGER install --save-dev $PACKAGES
     $PACKAGE_MANAGER run build
@@ -313,7 +313,7 @@ final_commit(){
     git merge develop
     git push -u origin staging
     git checkout -b main
-    git merge -b staging
+    git merge staging
     git push -u origin main
     git config branch.main.pushRemote no_push
     protect_branch
