@@ -9,12 +9,19 @@ on:
 permissions: read-all
 
 jobs:
-  setup:
-    uses: .github/workflows/shared-setup.yml
   SecurityChecker:
-    needs: setup
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+          
+      - name: Get shared php setup
+        uses: ./.github/actions/php
+        with:
+          php-version: '8.2'
+
       - name: Run Symfony Security Check
         run: $HOME/bin/symfony check:security
 

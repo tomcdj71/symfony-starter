@@ -4,10 +4,11 @@ on:
     branches:
       - develop
   pull_request:
-    types: [closed] # The action will trigger when a pull request is merged (closed)
+    types: [closed]
     branches:
       - main
       - staging
+      - develop
 
 permissions:
   contents: write
@@ -24,15 +25,14 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Get shared node setup
+        uses: ./.github/actions/node
         with:
           node-version: 18
-
-      - name: Install dependencies
-        run: npm install --force
         
       - name: Release
         env:

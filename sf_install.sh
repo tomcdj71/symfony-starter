@@ -80,7 +80,6 @@ create_symfony_project() {
     create_env_file
     mv pre-commit .git/hooks/
     chmod +x .git/hooks/pre-commit
-    echo "coverage.xml" >> .gitignore
     generate_and_set_secret_keys
     initialize_git
 }
@@ -136,7 +135,7 @@ modify_composer_json() {
 }
 
 install_composer_packages() {
-    PACKAGES="rector/rector phpunit/phpunit phpstan/phpstan phpro/grumphp friendsofphp/php-cs-fixer squizlabs/php_codesniffer phpmd/phpmd"
+    PACKAGES="rector/rector phpunit/phpunit phpstan/phpstan phpro/grumphp friendsofphp/php-cs-fixer squizlabs/php_codesniffer phpmd/phpmd phpstan/phpstan-doctrine"
     composer req $PACKAGES --dev --with-all-dependencies --no-interaction --sort-packages --optimize-autoloader --fixed
     composer req symfony/webpack-encore-bundle
     ./vendor/bin/php-cs-fixer fix --allow-risky=yes
@@ -163,7 +162,7 @@ setup_npm_packages() {
     ' package.json > newPackage.json
     
     mv newPackage.json package.json
-    PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github @semantic-release/changelog conventional-changelog-custom"
+    PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/git @semantic-release/github @semantic-release/changelog conventional-changelog-custom"
     $PACKAGE_MANAGER up --latest
     $PACKAGE_MANAGER install --save-dev $PACKAGES
     $PACKAGE_MANAGER run build
