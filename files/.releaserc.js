@@ -2,7 +2,14 @@ const releaseRules = require('./custom-release-rules');
 
 module.exports = {
     plugins: [
-        "@semantic-release/commit-analyzer",
+        ["@semantic-release/commit-analyzer", {
+            preset: "angular",
+            releaseRules: releaseRules,
+            parserOpts: {
+                headerPattern: /^(.*): (.*)$/,
+                headerCorrespondence: ['type', 'subject']
+            }
+        }],
         "@semantic-release/release-notes-generator",
         "@semantic-release/changelog",
         {
@@ -11,10 +18,6 @@ module.exports = {
         "@semantic-release/github",
         "@semantic-release/git"
     ],
-    analyzeCommits: {
-        preset: "angular",
-        releaseRules: releaseRules
-    },
     branches: [
         "main",
         {
@@ -35,6 +38,7 @@ module.exports = {
             assets: [
                 "package.json",
                 "package-lock.json",
+                "composer.json",
                 "CHANGELOG.md"
             ],
             message: "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"

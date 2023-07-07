@@ -186,12 +186,14 @@ initialize_git() {
     git remote add origin https://github.com/$GH_USERNAME/$PROJECT_NAME.git
     echo "Creating branches..."
     generate_readme
+    git checkout -b staging
     git checkout -b develop
     install_required_packages
     ./vendor/bin/phpunit --coverage-clover coverage.xml --migrate-configuration
     echo "coverage.xml" >> .gitignore
     git add .
     git commit -m "🎉 INIT: add initial set of files [skip ci]" -n
+    git tag v1.0.0
     git push -u origin develop
     create_codacy_repo
     wait_for_codacy
@@ -318,13 +320,22 @@ final_commit(){
     chmod -R 777 var
     git add .
     git commit -m "💻 CI: add CI process [automated]" -n
-    git push -u origin develop
-    git checkout -b staging
+    git stash
+    git checkout main
+    git pull origin main
+    git checkout develop
+    git stash pop
+    git rebase main
+    git checkout main
     git merge develop
-    git push -u origin staging
-    git checkout -b main
-    git merge staging
-    git push -u origin main
+    git push origin main
+    git checkout develop
+    git branch -D develop
+    git push origin --delete develop
+    git checkout -b staging
+    git push origin staging
+    git checkout -b develop
+    git push origin develop
     git config branch.main.pushRemote no_push
     protect_branch
 }
