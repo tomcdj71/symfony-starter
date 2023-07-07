@@ -163,7 +163,7 @@ setup_npm_packages() {
     ' package.json > newPackage.json
     
     mv newPackage.json package.json
-    PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github conventional-changelog-custom"
+    PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github @semantic-release/changelog conventional-changelog-custom"
     $PACKAGE_MANAGER up --latest
     $PACKAGE_MANAGER install --save-dev $PACKAGES
     $PACKAGE_MANAGER run build
