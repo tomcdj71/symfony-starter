@@ -1,3 +1,0 @@
-[[whitelist]]
-description = "Exclude Secrets directory"
-path = "config/secrets"

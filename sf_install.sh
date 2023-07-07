@@ -19,6 +19,8 @@ parse_arguments() {
         case "$1" in
             -ghu)
                 GH_USERNAME="$2"
+                CODACY_ORGANIZATION_PROVIDER=gh
+                CODACY_USERNAME="$GH_USERNAME"
                 shift 2
             ;;
             -ght)
@@ -31,6 +33,7 @@ parse_arguments() {
             ;;
             -n)
                 PROJECT_NAME="$2"
+                CODACY_PROJECT_NAME="$PROJECT_NAME"
                 shift 2
             ;;
             -o)
@@ -73,6 +76,11 @@ set_package_manager() {
 
 create_symfony_project() {
     echo "Creating Symfony project..."
+    if [ -z "$PROJECT_NAME" ]
+    then
+        echo "Error: Project name is required" >&2
+        exit 1
+    fi
     symfony new "$PROJECT_NAME" --webapp --quiet
     cd "$PROJECT_NAME"
     check_starter_pack
@@ -118,8 +126,6 @@ check_starter_pack() {
 install_required_packages() {
     echo "Installing dependencies..."
     modify_composer_json
-    install_composer_packages
-    composer update
     setup_npm_packages
 }
 
@@ -132,6 +138,7 @@ modify_composer_json() {
     mv newComposer.json composer.json
     composer config extra.symfony.allow-contrib true
     composer config --no-plugins allow-plugins.phpro/grumphp true
+    install_composer_packages
     composer update
 }
 
@@ -140,7 +147,6 @@ install_composer_packages() {
     composer req $PACKAGES --dev --with-all-dependencies --no-interaction --sort-packages --optimize-autoloader --fixed
     composer req symfony/webpack-encore-bundle
     ./vendor/bin/php-cs-fixer fix --allow-risky=yes
-    ./vendor/bin/phpunit --coverage-clover coverage.xml --migrate-configuration
     echo ".phpunit.cache/" >> .gitignore
 }
 
@@ -182,7 +188,8 @@ initialize_git() {
     generate_readme
     git checkout -b develop
     install_required_packages
-    ./vendor/bin/phpunit --coverage-clover coverage.xml
+    ./vendor/bin/phpunit --coverage-clover coverage.xml --migrate-configuration
+    echo "coverage.xml" >> .gitignore
     git add .
     git commit -m "🎉 INIT: add initial set of files [skip ci]" -n
     git push -u origin develop
@@ -296,6 +303,7 @@ wait_for_codacy() {
             "ignored": true,
         "filepath": "'$filepath'" }'
     done
+    bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
 }
 
 final_commit(){
