@@ -31,5 +31,5 @@ jobs:
         run: npm run build
 
       - name: Run tests with coverage
-        run: ./vendor/bin/phpunit --coverage-clover coverage.xml
+        run: ./bin/phpunit --coverage-clover coverage.xml
 
