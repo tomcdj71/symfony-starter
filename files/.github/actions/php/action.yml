@@ -33,7 +33,7 @@ runs:
     - name: Cache Composer packages
       uses: actions/cache@v2
       with:
-        path: ${{ steps.composer-cache.outputs.dir }}
+        path: ${{ env.composer_cache_dir }}
         key: ${{ runner.OS }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: ${{ runner.OS }}-composer-
         
