@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: deepakputhraya/action-pr-title@3864bebc79c5f829d25dd42d3c6579d040b0ef16
+
       name: Validate PR Title
       continue-on-error: true
       with:
@@ -20,6 +21,7 @@ jobs:
         max_length: 50 # Max length of the title
         github_token: ${{ secrets.GITHUB_TOKEN }} # Default: ${{ github.token }}
     - uses: mshick/add-pr-comment@07f690343c25a94e24a8acb70d03c86b701ae322
+    
       name: Comment on PR
       if: ${{ failure() }}
       env:
