@@ -132,7 +132,7 @@ install_required_packages() {
 
 modify_composer_json() {
     jq --arg name "$NAME" --arg desc "$DESCRIPTION" '
-    .name += "@\($name)"
+    .name += "\($name)"
     | .description += "\($desc)"
     | .license = "MIT"
     | .author = "ChangeMe <change@me.com>"
@@ -170,7 +170,7 @@ setup_npm_packages() {
     | .["pre-commit"] = ["precommit"]
     | .license += "MIT"
     | .version += "0.0.1"
-    | .name += "\($name)"
+    | .name += "@\($name)"
     | .description += "\($desc)"
     ' package.json > newPackage.json
     
