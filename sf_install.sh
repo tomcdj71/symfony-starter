@@ -125,16 +125,17 @@ check_starter_pack() {
 
 install_required_packages() {
     echo "Installing dependencies..."
+    NAME="$(echo "$GH_USERNAME/$PROJECT_NAME" | tr '[:upper:]' '[:lower:]')"
     modify_composer_json
     setup_npm_packages
 }
 
 modify_composer_json() {
-    jq --arg pn "$PROJECT_NAME" --arg ghu "$GH_USERNAME" --arg desc "$DESCRIPTION" '
-    .name = "\($ghu)/\($pn | ascii_downcase)"
-    | .description = "\($desc)"
-    | .license = "MIT"
-    | .version = "0.0.1"
+    jq --arg name "$NAME" --arg desc "$DESCRIPTION" '
+    .name += "\($name)"
+    | .description += "\($desc)"
+    | .license += "MIT"
+    | .version += "0.0.1"
     | .scripts += {"phpstan-baseline": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --allow-empty-baseline --generate-baseline --verbose", "phpstan": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --verbose", "phpcs": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes", "phpcs-dr": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes --dry-run", "translations-update": "php bin/console translation:extract --force fr --format=yml --sort"}' composer.json > newComposer.json
     mv newComposer.json composer.json
     composer config extra.symfony.allow-contrib true
@@ -152,8 +153,8 @@ install_composer_packages() {
 }
 
 setup_npm_packages() {
-    jq --arg pm "$PACKAGE_MANAGER" --arg pn "$PROJECT_NAME" --arg ghu "$GH_USERNAME" --arg desc "$DESCRIPTION" '
-    .scripts = {
+    jq --arg pm "$PACKAGE_MANAGER" --arg name "$NAME" --arg desc "$DESCRIPTION" '
+    .scripts += {
         "dev-server": "encore dev-server",
         "dev": "encore dev",
         "watch": "encore dev --watch",
@@ -165,10 +166,10 @@ setup_npm_packages() {
         "precommit": "\($pm) run lint && \($pm) run analyze && \($pm) run security"
     }
     | .["pre-commit"] = ["precommit"]
-    | .license = "MIT"
-    | .version = "0.0.1"
-    | .name = "\($ghu)/\($pn)"
-    | .description = "\($desc)"
+    | .license += "MIT"
+    | .version += "0.0.1"
+    | .name += "\($name)"
+    | .description += "\($desc)"
     ' package.json > newPackage.json
     
     mv newPackage.json package.json
