@@ -9,6 +9,8 @@ display_help() {
     echo "   -n,    Project name"
     echo "   -o,    Full name"
     echo "   -desc, DESCRIPTION"
+    echo "   -pm,  Package manager (npm, yarn, pnpm)"
+    echo "   -sm   Semver token"
     echo "   -h|--help,    Display this help message and exit"
     echo
     exit 1
@@ -145,11 +147,8 @@ modify_composer_json() {
     | .license = "MIT"
     | .authors = [{"name": "\($full_name)", "email": "change@me.com"}]
     | .homepage = "https://github.com/\($name).git"
-    | .repositories = [{"type": "git", "url": "https://github.com/\($name).git"}]
     | .scripts = (.scripts // {}) + {"phpstan-baseline": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --allow-empty-baseline --generate-baseline --verbose", "phpstan": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --verbose", "phpcs": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes", "phpcs-dr": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes --dry-run", "translations-update": "php bin/console translation:extract --force fr --format=yml --sort"}' composer.json > newComposer.json
     mv newComposer.json composer.json
-    composer update
-    composer validate
 }
 
 
@@ -344,6 +343,7 @@ final_commit() {
     jq --arg version "0.1.0" '.version = $version' composer.json > tmp.$$.json && mv tmp.$$.json composer.json
     jq --arg version "0.1.0" '.version = $version' package.json > tmp.$$.json && mv tmp.$$.json package.json
     composer update
+    composer validate --strict
     $PACKAGE_MANAGER upgrade
     git add .
     git commit -m "Prepare 0.1.0 release" -n
