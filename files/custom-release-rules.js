@@ -8,6 +8,7 @@ module.exports = [
     { type: '🐛 FIX', release: 'patch' },
     { type: '🎉 INIT', release: 'patch' },
     { type: '🔨 REFACTOR', release: 'patch' },
+    { type: '🚀 RELEASE', release: 'patch' },
     { type: '💎 STYLE', release: 'patch' },
     { type: '🚨 TEST', release: 'patch' },
 ];

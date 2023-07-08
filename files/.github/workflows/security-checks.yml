@@ -2,9 +2,9 @@ name: Security Checks
 
 on:
   push:
-    branches: [ staging ]
+    branches: [ develop ]
   pull_request:
-    branches: [ staging ]
+    branches: [ develop ]
 
 permissions: read-all
 

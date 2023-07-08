@@ -1,10 +1,10 @@
-name: Build and Test
+name: Test
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ develop ]
 
 permissions: read-all
 
@@ -21,14 +21,6 @@ jobs:
         uses: ./.github/actions/php
         with:
           php-version: '8.2'
-
-      - name: Get shared node setup
-        uses: ./.github/actions/node
-        with:
-          node-version: 18
-
-      - name: Build assets
-        run: npm run build
 
       - name: Run tests with coverage
         run: ./bin/phpunit --coverage-clover coverage.xml

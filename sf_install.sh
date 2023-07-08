@@ -134,6 +134,7 @@ modify_composer_json() {
     .name = "\($ghu)/\($pn | ascii_downcase)"
     | .description = "\($desc)"
     | .license = "MIT"
+    | .version = "0.0.1"
     | .scripts += {"phpstan-baseline": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --allow-empty-baseline --generate-baseline --verbose", "phpstan": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --verbose", "phpcs": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes", "phpcs-dr": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes --dry-run", "translations-update": "php bin/console translation:extract --force fr --format=yml --sort"}' composer.json > newComposer.json
     mv newComposer.json composer.json
     composer config extra.symfony.allow-contrib true
@@ -166,6 +167,10 @@ setup_npm_packages() {
         "pub": "npm version patch --force && npm publish"
     }
     | .["pre-commit"] = ["precommit"]
+    | .license = "MIT"
+    | .version = "0.0.1"
+    | .name = "\($ghu)/\($pn | ascii_downcase)"
+    | .description = "\($desc)"
     ' package.json > newPackage.json
     
     mv newPackage.json package.json
@@ -182,18 +187,15 @@ initialize_git() {
     git config --global init.defaultBranch main
     git config --global --add --bool push.autoSetupRemote true
     git config --global push.default current
-    git init
+    git-flow init -d -f
     git remote add origin https://github.com/$GH_USERNAME/$PROJECT_NAME.git
     echo "Creating branches..."
     generate_readme
-    git checkout -b staging
-    git checkout -b develop
     install_required_packages
     ./vendor/bin/phpunit --coverage-clover coverage.xml --migrate-configuration
     echo "coverage.xml" >> .gitignore
     git add .
     git commit -m "🎉 INIT: add initial set of files [skip ci]" -n
-    git tag v1.0.0
     git push -u origin develop
     create_codacy_repo
     wait_for_codacy
@@ -320,22 +322,18 @@ final_commit(){
     chmod -R 777 var
     git add .
     git commit -m "💻 CI: add CI process [automated]" -n
-    git stash
-    git checkout -b main
-    git pull origin main
-    git checkout develop
-    git stash pop
-    git rebase main
-    git checkout main
-    git merge develop
-    git push origin main
-    git checkout develop
-    git branch -D develop
-    git push origin --delete develop
-    git checkout -b staging
-    git push origin staging
-    git checkout -b develop
     git push origin develop
+    git flow release start 0.1.0
+    jq --arg version "0.1.0" '.version = $version' composer.json > tmp.$$.json && mv tmp.$$.json composer.json
+    jq --arg version "0.1.0" '.version = $version' package.json > tmp.$$.json && mv tmp.$$.json package.json
+    composer update
+    $PACKAGE_MANAGER upgrade
+    git add .
+    git commit -m "Prepare 0.1.0 release"
+    git flow release finish '0.1.0' -m "🚀 RELEASE: first release"
+    git push origin main
+    git push origin develop
+    git push --tags
     git config branch.main.pushRemote no_push
     protect_branch
 }
