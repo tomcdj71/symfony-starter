@@ -131,13 +131,13 @@ install_required_packages() {
 }
 
 modify_composer_json() {
-    jq --arg name "$NAME" --arg desc "$DESCRIPTION" '
+    jq --arg name "$NAME" --arg desc "$DESCRIPTION" --arg full_name "$FULL_NAME"'
     .name += "\($name)"
     | .description += "\($desc)"
     | .license = "MIT"
-    | .author = "ChangeMe <change@me.com>"
-    | .repository += {"type": "git", "url": "https://github.com/\($name).git"}
-    | .version += "0.0.1"
+    | .authors = [{"name": "\($full_name)", "email": "change@me.com"}]
+    | .homepage = "https://github.com/\($name).git"
+    | .repositories += [{"type": "git", "url": "https://github.com/\($name).git"}]
     | .scripts += {"phpstan-baseline": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --allow-empty-baseline --generate-baseline --verbose", "phpstan": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --verbose", "phpcs": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes", "phpcs-dr": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes --dry-run", "translations-update": "php bin/console translation:extract --force fr --format=yml --sort"}' composer.json > newComposer.json
     mv newComposer.json composer.json
     composer config extra.symfony.allow-contrib true
@@ -155,6 +155,7 @@ install_composer_packages() {
 }
 
 setup_npm_packages() {
+    $PACKAGE_MANAGER install --force
     jq --arg pm "$PACKAGE_MANAGER" --arg name "$NAME" --arg desc "$DESCRIPTION" '
     .scripts += {
         "dev-server": "encore dev-server",
@@ -168,7 +169,7 @@ setup_npm_packages() {
         "precommit": "\($pm) run lint && \($pm) run analyze && \($pm) run security"
     }
     | .["pre-commit"] = ["precommit"]
-    | .license += "MIT"
+    | .license = "MIT"
     | .version += "0.0.1"
     | .name += "@\($name)"
     | .description += "\($desc)"
@@ -178,6 +179,7 @@ setup_npm_packages() {
     PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/git @semantic-release/github @semantic-release/changelog conventional-changelog-custom conventional-changelog-angular conventional-changelog-conventionalcommits conventional-changelog"
     $PACKAGE_MANAGER up --latest
     $PACKAGE_MANAGER install --save-dev $PACKAGES
+    $PACKAGE_MANAGER audit fix --force
     $PACKAGE_MANAGER run build
 }
 
