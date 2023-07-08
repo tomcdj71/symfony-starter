@@ -152,7 +152,7 @@ install_composer_packages() {
 }
 
 setup_npm_packages() {
-    jq --arg pm "$PACKAGE_MANAGER" '
+    jq --arg pm "$PACKAGE_MANAGER" pn "$PROJECT_NAME" --arg ghu "$GH_USERNAME" --arg desc "$DESCRIPTION"'
     .scripts += {
         "dev-server": "encore dev-server",
         "dev": "encore dev",
@@ -163,8 +163,7 @@ setup_npm_packages() {
         "analyze": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --generate-baseline",
         "security": "symfony check:security",
         "precommit": "\($pm) run lint && \($pm) run analyze && \($pm) run security",
-        "pre-commit": "\($pm) run analyze && \($pm) run precommit",
-        "pub": "npm version patch --force && npm publish"
+        "pre-commit": "\($pm) run analyze && \($pm) run precommit"
     }
     | .["pre-commit"] = ["precommit"]
     | .license = "MIT"
@@ -187,7 +186,7 @@ initialize_git() {
     git config --global init.defaultBranch main
     git config --global --add --bool push.autoSetupRemote true
     git config --global push.default current
-    git-flow init -d -f
+    git init
     git remote add origin https://github.com/$GH_USERNAME/$PROJECT_NAME.git
     echo "Creating branches..."
     generate_readme
@@ -196,7 +195,8 @@ initialize_git() {
     echo "coverage.xml" >> .gitignore
     git add .
     git commit -m "🎉 INIT: add initial set of files [skip ci]" -n
-    git push -u origin develop
+    git push -u origin main
+    git-flow init -d -f
     create_codacy_repo
     wait_for_codacy
 }
