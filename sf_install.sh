@@ -132,9 +132,11 @@ install_required_packages() {
 
 modify_composer_json() {
     jq --arg name "$NAME" --arg desc "$DESCRIPTION" '
-    .name += "\($name)"
+    .name += "@\($name)"
     | .description += "\($desc)"
-    | .license += "MIT"
+    | .license = "MIT"
+    | .author = "ChangeMe <change@me.com>"
+    | .repository += {"type": "git", "url": "https://github.com/\($name).git"}
     | .version += "0.0.1"
     | .scripts += {"phpstan-baseline": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --allow-empty-baseline --generate-baseline --verbose", "phpstan": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --verbose", "phpcs": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes", "phpcs-dr": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes --dry-run", "translations-update": "php bin/console translation:extract --force fr --format=yml --sort"}' composer.json > newComposer.json
     mv newComposer.json composer.json
@@ -329,7 +331,7 @@ final_commit(){
     composer update
     $PACKAGE_MANAGER upgrade
     git add .
-    git commit -m "Prepare 0.1.0 release"
+    git commit -m "Prepare 0.1.0 release" -n
     git flow release finish '0.1.0' -m "🚀 RELEASE: first release"
     git push origin main
     git push origin develop
