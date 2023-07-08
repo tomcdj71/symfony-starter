@@ -131,6 +131,11 @@ install_required_packages() {
 }
 
 modify_composer_json() {
+    composer config extra.symfony.allow-contrib true
+    composer config --no-plugins allow-plugins.phpro/grumphp true
+    install_composer_packages
+    composer update
+    cp -pR composer.json composer.json.bak
     jq --arg name "$NAME" --arg desc "$DESCRIPTION" --arg full_name "$FULL_NAME"'
     .name = "\($name)"
     | .description = "\($desc)"
@@ -140,10 +145,7 @@ modify_composer_json() {
     | .repositories = [{"type": "git", "url": "https://github.com/\($name).git"}]
     | .scripts += {"phpstan-baseline": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --allow-empty-baseline --generate-baseline --verbose", "phpstan": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --verbose", "phpcs": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes", "phpcs-dr": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes --dry-run", "translations-update": "php bin/console translation:extract --force fr --format=yml --sort"}' composer.json > newComposer.json
     mv newComposer.json composer.json
-    composer config extra.symfony.allow-contrib true
-    composer config --no-plugins allow-plugins.phpro/grumphp true
-    install_composer_packages
-    composer update
+    composer validate
 }
 
 
@@ -157,6 +159,12 @@ install_composer_packages() {
 
 setup_npm_packages() {
     $PACKAGE_MANAGER install --force
+    PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/git @semantic-release/github @semantic-release/changelog conventional-changelog-custom conventional-changelog-angular conventional-changelog-conventionalcommits conventional-changelog"
+    $PACKAGE_MANAGER up --latest
+    $PACKAGE_MANAGER install --save-dev $PACKAGES
+    $PACKAGE_MANAGER audit fix --force
+    $PACKAGE_MANAGER run build
+    cp -pR package.json package.json.bak
     jq --arg pm "$PACKAGE_MANAGER" --arg name "$NAME" --arg desc "$DESCRIPTION" '
     .scripts += {
         "dev-server": "encore dev-server",
@@ -175,13 +183,7 @@ setup_npm_packages() {
     | .name = "@\($name)"
     | .description = "\($desc)"
     ' package.json > newPackage.json
-    
     mv newPackage.json package.json
-    PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/git @semantic-release/github @semantic-release/changelog conventional-changelog-custom conventional-changelog-angular conventional-changelog-conventionalcommits conventional-changelog"
-    $PACKAGE_MANAGER up --latest
-    $PACKAGE_MANAGER install --save-dev $PACKAGES
-    $PACKAGE_MANAGER audit fix --force
-    $PACKAGE_MANAGER run build
 }
 
 initialize_git() {
