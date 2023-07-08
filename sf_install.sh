@@ -138,9 +138,7 @@ install_required_packages() {
 }
 
 modify_composer_json() {
-    composer config extra.symfony.allow-contrib true
-    composer config --no-plugins allow-plugins.phpro/grumphp true
-    install_composer_packages
+    echo "Editing composer.json..."
     jq --arg name "$NAME" --arg desc "$DESCRIPTION" --arg full_name "$FULL_NAME" \
     '.name = "\($name)"
     | .description = "\($desc)"
@@ -149,18 +147,24 @@ modify_composer_json() {
     | .homepage = "https://github.com/\($name).git"
     | .scripts = (.scripts // {}) + {"phpstan-baseline": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --allow-empty-baseline --generate-baseline --verbose", "phpstan": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --verbose", "phpcs": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes", "phpcs-dr": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes --dry-run", "translations-update": "php bin/console translation:extract --force fr --format=yml --sort"}' composer.json > newComposer.json
     mv newComposer.json composer.json
+    composer config extra.symfony.allow-contrib true
+    composer config --no-plugins allow-plugins.phpro/grumphp true
+    install_composer_packages
 }
 
 
 install_composer_packages() {
+    echo "Installing composer packages..."
+    composer update -q
     PACKAGES="rector/rector phpunit/phpunit phpstan/phpstan phpro/grumphp friendsofphp/php-cs-fixer squizlabs/php_codesniffer phpmd/phpmd phpstan/phpstan-doctrine"
-    composer req $PACKAGES --dev --with-all-dependencies --no-interaction --sort-packages --optimize-autoloader --fixed
-    composer req symfony/webpack-encore-bundle
+    composer req $PACKAGES --dev --with-all-dependencies --no-interaction --sort-packages --optimize-autoloader --fixed -q
+    composer req symfony/webpack-encore-bundle -q
     ./vendor/bin/php-cs-fixer fix --allow-risky=yes
     echo ".phpunit.cache/" >> .gitignore
 }
 
 setup_npm_packages() {
+    echo "Installing npm packages..."
     jq --arg pm "$PACKAGE_MANAGER" --arg name "$NAME" --arg desc "$DESCRIPTION" '
     .scripts += {
         "dev-server": "encore dev-server",
@@ -342,12 +346,12 @@ final_commit() {
     echo "Prepare 0.1.0 release" | git flow release start 0.1.0
     jq --arg version "0.1.0" '.version = $version' composer.json > tmp.$$.json && mv tmp.$$.json composer.json
     jq --arg version "0.1.0" '.version = $version' package.json > tmp.$$.json && mv tmp.$$.json package.json
-    composer update
+    composer update -q
     composer validate --strict
     $PACKAGE_MANAGER upgrade
     git add .
     git commit -m "Prepare 0.1.0 release" -n
-    echo "🚀 RELEASE: first release" | git flow release finish '0.1.0'
+    git flow release finish -m "🚀 RELEASE: first release" '0.1.0'
     git push origin main
     git push origin develop
     git push --tags
