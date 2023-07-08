@@ -132,12 +132,12 @@ install_required_packages() {
 
 modify_composer_json() {
     jq --arg name "$NAME" --arg desc "$DESCRIPTION" --arg full_name "$FULL_NAME"'
-    .name += "\($name)"
-    | .description += "\($desc)"
+    .name = "\($name)"
+    | .description = "\($desc)"
     | .license = "MIT"
     | .authors = [{"name": "\($full_name)", "email": "change@me.com"}]
     | .homepage = "https://github.com/\($name).git"
-    | .repositories += [{"type": "git", "url": "https://github.com/\($name).git"}]
+    | .repositories = [{"type": "git", "url": "https://github.com/\($name).git"}]
     | .scripts += {"phpstan-baseline": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --allow-empty-baseline --generate-baseline --verbose", "phpstan": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --verbose", "phpcs": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes", "phpcs-dr": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes --dry-run", "translations-update": "php bin/console translation:extract --force fr --format=yml --sort"}' composer.json > newComposer.json
     mv newComposer.json composer.json
     composer config extra.symfony.allow-contrib true
@@ -145,6 +145,7 @@ modify_composer_json() {
     install_composer_packages
     composer update
 }
+
 
 install_composer_packages() {
     PACKAGES="rector/rector phpunit/phpunit phpstan/phpstan phpro/grumphp friendsofphp/php-cs-fixer squizlabs/php_codesniffer phpmd/phpmd phpstan/phpstan-doctrine"
@@ -170,9 +171,9 @@ setup_npm_packages() {
     }
     | .["pre-commit"] = ["precommit"]
     | .license = "MIT"
-    | .version += "0.0.1"
-    | .name += "@\($name)"
-    | .description += "\($desc)"
+    | .version = "0.0.1"
+    | .name = "@\($name)"
+    | .description = "\($desc)"
     ' package.json > newPackage.json
     
     mv newPackage.json package.json
