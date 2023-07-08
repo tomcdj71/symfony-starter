@@ -75,6 +75,7 @@ set_package_manager() {
 }
 
 create_symfony_project() {
+    export EDITOR=:
     echo "Creating Symfony project..."
     if [ -z "$PROJECT_NAME" ]
     then
@@ -134,17 +135,16 @@ modify_composer_json() {
     composer config extra.symfony.allow-contrib true
     composer config --no-plugins allow-plugins.phpro/grumphp true
     install_composer_packages
-    composer update
-    cp -pR composer.json composer.json.bak
-    jq --arg name "$NAME" --arg desc "$DESCRIPTION" --arg full_name "$FULL_NAME"'
-    .name = "\($name)"
+    jq --arg name "$NAME" --arg desc "$DESCRIPTION" --arg full_name "$FULL_NAME" \
+    '.name = "\($name)"
     | .description = "\($desc)"
     | .license = "MIT"
     | .authors = [{"name": "\($full_name)", "email": "change@me.com"}]
     | .homepage = "https://github.com/\($name).git"
     | .repositories = [{"type": "git", "url": "https://github.com/\($name).git"}]
-    | .scripts += {"phpstan-baseline": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --allow-empty-baseline --generate-baseline --verbose", "phpstan": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --verbose", "phpcs": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes", "phpcs-dr": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes --dry-run", "translations-update": "php bin/console translation:extract --force fr --format=yml --sort"}' composer.json > newComposer.json
+    | .scripts = (.scripts // {}) + {"phpstan-baseline": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --allow-empty-baseline --generate-baseline --verbose", "phpstan": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=9 --verbose", "phpcs": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes", "phpcs-dr": "./vendor/bin/php-cs-fixer fix ./src --rules=@Symfony --verbose --allow-risky=yes --dry-run", "translations-update": "php bin/console translation:extract --force fr --format=yml --sort"}' composer.jso > newComposer.json
     mv newComposer.json composer.json
+    composer update
     composer validate
 }
 
@@ -158,13 +158,6 @@ install_composer_packages() {
 }
 
 setup_npm_packages() {
-    $PACKAGE_MANAGER install --force
-    PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/git @semantic-release/github @semantic-release/changelog conventional-changelog-custom conventional-changelog-angular conventional-changelog-conventionalcommits conventional-changelog"
-    $PACKAGE_MANAGER up --latest
-    $PACKAGE_MANAGER install --save-dev $PACKAGES
-    $PACKAGE_MANAGER audit fix --force
-    $PACKAGE_MANAGER run build
-    cp -pR package.json package.json.bak
     jq --arg pm "$PACKAGE_MANAGER" --arg name "$NAME" --arg desc "$DESCRIPTION" '
     .scripts += {
         "dev-server": "encore dev-server",
@@ -184,6 +177,20 @@ setup_npm_packages() {
     | .description = "\($desc)"
     ' package.json > newPackage.json
     mv newPackage.json package.json
+    PACKAGES="semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/git @semantic-release/github @semantic-release/changelog conventional-changelog-custom conventional-changelog-angular conventional-changelog-conventionalcommits conventional-changelog"
+    echo "Installing packages..."
+    $PACKAGE_MANAGER install --force --save-dev $PACKAGES
+    echo "Updating packages to the latest versions..."
+    $PACKAGE_MANAGER up --lates
+    if [ "$PACKAGE_MANAGER" != "pnpm" ]; then
+        echo "Running audit fix..."
+        $PACKAGE_MANAGER audit fix --force
+    else
+        echo "Running audit fix for pnpm..."
+        $PACKAGE_MANAGER audit --fix
+    fi
+    echo "Building the project..."
+    $PACKAGE_MANAGER run build
 }
 
 initialize_git() {
@@ -317,10 +324,8 @@ wait_for_codacy() {
     bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
 }
 
-final_commit(){
+final_commit() {
     echo "Final commit..."
-    rm -rf vendor
-    composer install
     sleep 5
     GRADE_URL=$(curl -sX GET https://app.codacy.com/api/v3/organizations/gh/$GH_USERNAME/repositories/$PROJECT_NAME -H 'Accept: application/json' -H "api-token: $CODACY_TOKEN" | jq -r ".data | .badges | .grade")
     COVERAGE_URL=$(curl -sX GET https://app.codacy.com/api/v3/organizations/gh/$GH_USERNAME/repositories/$PROJECT_NAME -H 'Accept: application/json' -H "api-token: $CODACY_TOKEN" | jq -r ".data | .badges | .coverage")
@@ -330,20 +335,21 @@ final_commit(){
     git add .
     git commit -m "💻 CI: add CI process [automated]" -n
     git push origin develop
-    git flow release start 0.1.0
+    echo "Prepare 0.1.0 release" | git flow release start 0.1.0
     jq --arg version "0.1.0" '.version = $version' composer.json > tmp.$$.json && mv tmp.$$.json composer.json
     jq --arg version "0.1.0" '.version = $version' package.json > tmp.$$.json && mv tmp.$$.json package.json
     composer update
     $PACKAGE_MANAGER upgrade
     git add .
     git commit -m "Prepare 0.1.0 release" -n
-    git flow release finish '0.1.0' -m "🚀 RELEASE: first release"
+    echo "🚀 RELEASE: first release" | git flow release finish '0.1.0'
     git push origin main
     git push origin develop
     git push --tags
     git config branch.main.pushRemote no_push
     protect_branch
 }
+
 
 parse_arguments "$@"
 set_package_manager
