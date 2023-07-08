@@ -44,6 +44,10 @@ parse_arguments() {
                 PACKAGE_MANAGER="$2"
                 shift 2
             ;;
+            -sm)
+                SEMVER_TOKEN="$2"
+                shift 2
+            ;;
             -desc)
                 DESCRIPTION="$2"
                 shift 2
@@ -290,6 +294,7 @@ protect_branch() {
             "allow_force_pushes": false,
             "allow_deletions": false
     }' > /dev/null 2>&1 && echo "Branches created and main protected."
+    echo "$SEMVER_TOKEN" | gh secret set PAT -R $GH_USERNAME/$PROJECT_NAME
     echo "$PROJECT_NAME ready."
 }
 
