@@ -152,8 +152,8 @@ install_composer_packages() {
 }
 
 setup_npm_packages() {
-    jq --arg pm "$PACKAGE_MANAGER" pn "$PROJECT_NAME" --arg ghu "$GH_USERNAME" --arg desc "$DESCRIPTION"'
-    .scripts += {
+    jq --arg pm "$PACKAGE_MANAGER" --arg pn "$PROJECT_NAME" --arg ghu "$GH_USERNAME" --arg desc "$DESCRIPTION" '
+    .scripts = {
         "dev-server": "encore dev-server",
         "dev": "encore dev",
         "watch": "encore dev --watch",
@@ -162,13 +162,12 @@ setup_npm_packages() {
         "fix": "./vendor/bin/rector process ./src",
         "analyze": "./vendor/bin/phpstan analyze --configuration=phpstan.neon --generate-baseline",
         "security": "symfony check:security",
-        "precommit": "\($pm) run lint && \($pm) run analyze && \($pm) run security",
-        "pre-commit": "\($pm) run analyze && \($pm) run precommit"
+        "precommit": "\($pm) run lint && \($pm) run analyze && \($pm) run security"
     }
     | .["pre-commit"] = ["precommit"]
     | .license = "MIT"
     | .version = "0.0.1"
-    | .name = "\($ghu)/\($pn | ascii_downcase)"
+    | .name = "\($ghu)/\($pn)"
     | .description = "\($desc)"
     ' package.json > newPackage.json
     
