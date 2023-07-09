@@ -2,9 +2,9 @@ name: Lint
 
 on:
   push:
-    branches: [ 'release/*' ]
+    branches: [ develop, staging ]
   pull_request:
-    branches: [ 'release/*' ]
+    branches: [ develop, staging ]
 
 permissions: read-all
 
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@main
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           

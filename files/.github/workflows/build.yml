@@ -2,9 +2,15 @@ name: Build
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - develop
+      - staging
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - develop
+      - staging
 
 permissions: read-all
 
@@ -13,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@main
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0S
 

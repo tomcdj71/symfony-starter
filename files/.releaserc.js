@@ -1,10 +1,8 @@
-const releaseRules = require('./custom-release-rules');
-
 module.exports = {
     plugins: [
         ["@semantic-release/commit-analyzer", {
             preset: "angular",
-            releaseRules: releaseRules,
+            releaseRules: require('./custom-release-rules'),
             parserOpts: {
                 headerPattern: /^(.*): (.*)$/,
                 headerCorrespondence: ['type', 'subject']
@@ -12,9 +10,6 @@ module.exports = {
         }],
         "@semantic-release/release-notes-generator",
         "@semantic-release/changelog",
-        {
-            "changelogFile": "CHANGELOG.md"
-        },
         "@semantic-release/github",
         "@semantic-release/git"
     ],
@@ -22,12 +17,12 @@ module.exports = {
         "main",
         {
             name: "develop",
-            channel: "beta",
+            channel: "next",
             prerelease: "beta"
         },
         {
             name: "staging",
-            channel: "rc",
+            channel: "next",
             prerelease: "rc"
         }
     ],
@@ -41,7 +36,7 @@ module.exports = {
                 "composer.json",
                 "CHANGELOG.md"
             ],
-            message: "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+            message: "🎫 CHORE(release): ${nextRelease.version}\n\n${nextRelease.notes}"
         }
     ]
 };

@@ -216,7 +216,7 @@ initialize_git() {
     echo "coverage.xml" >> .gitignore
     git add .
     git commit -m "🎉 INIT: add initial set of files [skip ci]" -n
-    git push -u origin main
+    git push -u origin develop
     git-flow init -d -f
     create_codacy_repo
     wait_for_codacy
@@ -230,8 +230,8 @@ generate_readme() {
 [![Twitter: ${GH_USERNAME}](https://img.shields.io/twitter/follow/${GH_USERNAME}.svg?style=social)](https://twitter.com/${GH_USERNAME})
 [![Codacy Badge](GRADE_URL)](https://app.codacy.com/gh/${GH_USERNAME}/${PROJECT_NAME}/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Codacy Badge](COVERAGE_URL)](https://app.codacy.com/gh/${GH_USERNAME}/${PROJECT_NAME}/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
-![GitHub release (with filter)](https://img.shields.io/github/v/release/tomcdj71/Snowtricks)
-![GitHub release (with filter)](https://img.shields.io/github/v/release/tomcdj71/Snowtricks?filter=*beta)
+![GitHub release (with filter)](https://img.shields.io/github/v/release/${GH_USERNAME}/${PROJECT_NAME})
+![GitHub release (with filter)](https://img.shields.io/github/v/release/${GH_USERNAME}/${PROJECT_NAME}?filter=*beta)
 
 > ${DESCRIPTION}
 
@@ -279,28 +279,6 @@ _This README was generated with ❤️ by [readme-md-generator](https://github.c
 EOF
 }
 
-protect_branch() {
-    curl -H "Authorization: token $GH_TOKEN" \
-    -X PUT \
-    -H "Accept: application/vnd.github.v3+json" \
-    https://api.github.com/repos/$GH_USERNAME/$PROJECT_NAME/branches/main/protection \
-    -d '{
-            "required_pull_request_reviews": {
-                "dismiss_stale_reviews": false,
-                "require_code_owner_reviews": false,
-                "required_approving_review_count": 0
-            },
-            "restrictions": null,
-            "enforce_admins": false,
-            "required_status_checks": null,
-            "required_linear_history": false,
-            "allow_force_pushes": false,
-            "allow_deletions": false
-    }' > /dev/null 2>&1 && echo "Branches created and main protected."
-    echo "$SEMVER_TOKEN" | gh secret set PAT -R $GH_USERNAME/$PROJECT_NAME
-    echo "$PROJECT_NAME ready."
-}
-
 create_codacy_repo() {
     sleep 5
     echo "Creating Codacy repository..."
@@ -341,24 +319,13 @@ final_commit() {
     sed -i "s|COVERAGE_URL|$COVERAGE_URL|g" README.md
     chmod -R 777 var
     git add .
+    git branch --set-upstream-to=origin/main develop
     git commit -m "💻 CI: add CI process [automated]" -n
     git push origin develop
-    echo "Prepare 0.1.0 release" | git flow release start 0.1.0
-    jq --arg version "0.1.0" '.version = $version' composer.json > tmp.$$.json && mv tmp.$$.json composer.json
-    jq --arg version "0.1.0" '.version = $version' package.json > tmp.$$.json && mv tmp.$$.json package.json
-    composer update -q
-    composer validate --strict
-    $PACKAGE_MANAGER upgrade
-    git add .
-    git commit -m "Prepare 0.1.0 release" -n
-    git flow release finish -m "🚀 RELEASE: first release" '0.1.0'
-    git push origin main
-    git push origin develop
-    git push --tags
-    git config branch.main.pushRemote no_push
-    protect_branch
+    git checkout -b staging develop
+    git push origin staging
+    npx semantic-release
 }
-
 
 parse_arguments "$@"
 set_package_manager

@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+      - develop
+      - staging
 permissions:
   contents: write
   issues: write
@@ -17,15 +19,15 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@main
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Get shared node setup
         uses: ./.github/actions/node
         with:
           node-version: 18
       - name: Release
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
